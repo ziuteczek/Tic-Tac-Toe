@@ -32,7 +32,12 @@ void centerMenuElements(SDL_Window *gWindow, std::array<GButtonTexture, MENU_OPT
         optionButtons[i].setBtnPos(buttonCenteredXPos, buttonYPos);
     }
 }
-
+/*
+    @return
+    0 - Esc
+    1 - Options
+    2 - Start game
+*/
 int menu(SDL_Window *gWindow, SDL_Renderer *gRenderer)
 {
     bool quitMenu = false;
@@ -103,6 +108,14 @@ int menu(SDL_Window *gWindow, SDL_Renderer *gRenderer)
     }
     SDL_FreeCursor(arrow);
     SDL_FreeCursor(click);
+
+    SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(gRenderer);
+
+    for (auto &buttons : optionButtons)
+    {
+        buttons.free();
+    }
 
     return chosenOption;
 }

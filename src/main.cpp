@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "stages/menu.hpp"
+#include "stages/game.hpp"
 
 #include "classes/texture.hpp"
 #include "classes/button.hpp"
@@ -28,7 +29,12 @@ int main(int argc, char *argv[])
 
     bool startGame = false;
 
-    int menuOption = menu(gWindow,gRenderer);
+    int menuOption = menu(gWindow, gRenderer);
+
+    if (menuOption == MENU_OPTION_START)
+    {
+        game(gWindow, gRenderer);
+    }
 
     close(gWindow, gRenderer);
 }
@@ -55,9 +61,3 @@ void load(SDL_Window **gWindow, SDL_Renderer **gRenderer)
     *gWindow = SDL_CreateWindow("Tic Tac Toe", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_RESIZABLE);
     *gRenderer = SDL_CreateRenderer(*gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 }
-/*
-    @return
-    0 - Esc
-    1 - Options
-    2 - Start game
-*/

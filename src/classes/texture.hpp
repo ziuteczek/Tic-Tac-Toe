@@ -41,7 +41,7 @@ bool GTexture::loadImgTexture(std::string path)
     if (loadImgSurface == nullptr)
     {
         SDL_FreeSurface(loadImgSurface);
-        IMG_Quit();
+        std::cerr << IMG_GetError() << std::endl;
         return false;
     }
 
@@ -50,7 +50,7 @@ bool GTexture::loadImgTexture(std::string path)
     if (gTexture == nullptr)
     {
         SDL_FreeSurface(loadImgSurface);
-        IMG_Quit();
+        std::cerr << SDL_GetError() << std::endl;
         return false;
     }
 
@@ -70,7 +70,6 @@ bool GTexture::loadTextTexture(std::string text, SDL_Color textColor, int fontSi
     if (textFont == nullptr)
     {
         TTF_CloseFont(textFont);
-        TTF_Quit();
         return false;
     }
 
@@ -80,7 +79,6 @@ bool GTexture::loadTextTexture(std::string text, SDL_Color textColor, int fontSi
     {
         TTF_CloseFont(textFont);
         SDL_FreeSurface(textSurface);
-        TTF_Quit();
         return false;
     }
 
@@ -101,7 +99,7 @@ void GTexture::render(int x, int y, SDL_Rect *clip)
     if (clip != nullptr)
     {
         target.w = clip->w;
-        target.y = clip->y;
+        target.h = clip->h;
     }
 
     SDL_RenderCopy(gRenderer, gTexture, clip, &target);

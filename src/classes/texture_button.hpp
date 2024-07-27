@@ -22,6 +22,7 @@ private:
 
 public:
     GButtonTexture(SDL_Renderer *textureRenderer);
+    GButtonTexture() = default;
 
     GButtonStatus getButtonStatus();
 
@@ -181,4 +182,4 @@ GButtonStatus GButtonTexture::getButtonStatus()
 {
     return mouseStatus;
 }
-#endif 
+#endif
