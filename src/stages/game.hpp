@@ -21,12 +21,6 @@ char game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
     SDL_Event e;
     bool endGame = false;
 
-    GTexture circle(gRenderer);
-    GTexture cross(gRenderer);
-
-    circle.loadImgTexture("icons/circle.svg");
-    cross.loadImgTexture("icons/cross.svg");
-
     std::array<GButtonTexture, 9> cells;
 
     for (auto &cell : cells)
@@ -70,17 +64,14 @@ char game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
 
         for (int i = 0; i < 9 && moves[i] != -1; i++)
         {
-            GTexture *moveTexture = (i % 2) ? &circle : &cross;
             drawMove(gRenderer, moves[i], screen_w, screen_h, i % 2);
         }
         SDL_RenderPresent(gRenderer);
     }
 
-    circle.free();
-    cross.free();
-
     return 0;
 }
+
 void drawMove(SDL_Renderer *gRenderer, unsigned int cell, int screenWidth, int screenHeight, bool player)
 {
     int row = cell % 3;
