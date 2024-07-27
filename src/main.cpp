@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
     if (menuOption == MENU_OPTION_START)
     {
-        game(gWindow, gRenderer);
+        std::cout << game(gWindow, gRenderer) << std::endl;
     }
 
     close(gWindow, gRenderer);

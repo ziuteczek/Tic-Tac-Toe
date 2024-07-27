@@ -12,14 +12,28 @@
 #define WINDOW_PADDING 0.10f
 #define CELL_PADDING 0.05f
 
-void drawMove(SDL_Renderer *gRenderer, unsigned int cell, int screenWidth, int screenHeight, bool player);
+void drawMove(SDL_Renderer *gRenderer, unsigned int cell, int screenWidth, int screenHeight, bool player, int cellWidth, int cellHeight);
 void drawBoard(SDL_Renderer *gRenderer, int screen_w, int screen_h);
 void drawCircle(SDL_Renderer *gRenderer, int xPos, int yPos, int r);
 
-char game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
+int findCurrentMove(std::array<char, 9> board);
+void cellToCords(int cell, int &row, int &column);
+bool arrayIncludes(char arr[], int arrLength, char searchFor);
+
+bool checkPlayerWin(std::array<char, 9> board, int movesDone, bool player);
+
+enum gameResults
+{
+    GAME_RESULT_CIRCLE_WIN,
+    GAME_RESULT_CROSS_WIN,
+    GAME_RESULT_TIE,
+};
+
+gameResults game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
 {
     SDL_Event e;
     bool endGame = false;
+    gameResults gameWinner;
 
     std::array<GButtonTexture, 9> cells;
 
@@ -27,19 +41,16 @@ char game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
     {
         cell = GButtonTexture(gRenderer);
     }
-    /*
-     Every index represent player move, even indexes are o player, odd indexes are x player
-     Value represents cell where move was done counting from left to right, from top to bottom
-     eg. index 3 of value 6 represens player x move to right center cell
-     */
+
     std::array<char, 9> moves;
     moves.fill(-1);
-    moves[0] = 2;
-    moves[1] = 3;
 
     int screen_w, screen_h;
 
     SDL_GetWindowSize(gWindow, &screen_w, &screen_h);
+
+    int cellWidth = screen_w / 3;
+    int cellHeight = screen_h / 3;
 
     while (!endGame)
     {
@@ -50,10 +61,54 @@ char game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
             case SDL_QUIT:
                 endGame = true;
                 break;
-            }
-            if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED)
+            case SDL_MOUSEBUTTONDOWN:
             {
-                SDL_GetWindowSize(gWindow, &screen_w, &screen_h);
+                int mouseX, mouseY;
+
+                SDL_GetMouseState(&mouseX, &mouseY);
+
+                int currentCell = mouseX / cellWidth + mouseY / cellHeight * 3;
+                int currentMoveIndex = findCurrentMove(moves);
+
+                if (arrayIncludes(moves.data(), moves.size(), currentCell))
+                {
+                    break;
+                }
+
+                moves[currentMoveIndex] = currentCell;
+
+                if (currentMoveIndex == -1)
+                {
+                    endGame = true;
+                    gameWinner = GAME_RESULT_TIE;
+                    break;
+                }
+
+                if (currentMoveIndex == 8)
+                {
+                    endGame = true;
+                    gameWinner = GAME_RESULT_TIE;
+                    break;
+                }
+                bool currentPlayer = currentMoveIndex % 2;
+                if (currentMoveIndex >= 4 && checkPlayerWin(moves, currentMoveIndex, currentPlayer))
+                {
+                    gameWinner = (currentPlayer ? GAME_RESULT_CROSS_WIN : GAME_RESULT_CIRCLE_WIN);
+                    endGame = true;
+                    break;
+                }
+            }
+            break;
+            case SDL_WINDOWEVENT:
+            {
+                if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+                {
+                    SDL_GetWindowSize(gWindow, &screen_w, &screen_h);
+                    cellWidth = screen_w / 3;
+                    cellHeight = screen_h / 3;
+                }
+                break;
+            }
             }
         }
 
@@ -64,21 +119,86 @@ char game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
 
         for (int i = 0; i < 9 && moves[i] != -1; i++)
         {
-            drawMove(gRenderer, moves[i], screen_w, screen_h, i % 2);
+            drawMove(gRenderer, moves[i], screen_w, screen_h, i % 2, cellWidth, cellHeight);
         }
         SDL_RenderPresent(gRenderer);
     }
 
-    return 0;
+    return gameWinner;
 }
-
-void drawMove(SDL_Renderer *gRenderer, unsigned int cell, int screenWidth, int screenHeight, bool player)
+bool wonInRow(int row[], int rowLength)
 {
-    int row = cell % 3;
-    int column = cell / 3;
+    for (int i = 0; i < rowLength; i++)
+    {
+        if (row[i] == 3)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+bool checkPlayerWin(std::array<char, 9> board, int movesDone, bool player)
+{
+    std::array<int, 3> rows{};
+    std::array<int, 3> columns{};
+    std::array<int, 2> cross{};
 
-    int cellWidth = screenWidth / 3;
-    int cellHeight = screenHeight / 3;
+    for (int i = 0; i <= movesDone; i++)
+    {
+        if (i % 2 != player)
+        {
+            continue;
+        }
+
+        int cell = board[i];
+
+        int row, column;
+        cellToCords(cell, row, column);
+
+        if (cell % 2 == 0)
+        {
+            if (cell == 4)
+            {
+                cross[0]++;
+                cross[1]++;
+            }
+            else if (cell == 0 || cell == 8)
+            {
+                cross[0]++;
+            }
+            else
+            {
+                cross[1]++;
+            }
+        }
+        rows[row]++;
+        columns[column]++;
+    }
+
+    return wonInRow(rows.data(), rows.size()) || wonInRow(columns.data(), columns.size()) || wonInRow(cross.data(), cross.size());
+}
+// @return if return = -1 board is full
+int findCurrentMove(std::array<char, 9> board)
+{
+    for (int i = 0; i < 9; i++)
+    {
+        if (board[i] == -1)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+void cellToCords(int cell, int &row, int &column)
+{
+    row = cell % 3;
+    column = cell / 3;
+}
+void drawMove(SDL_Renderer *gRenderer, unsigned int cell, int screenWidth, int screenHeight, bool player, int cellWidth, int cellHeight)
+{
+    int row, column;
+
+    cellToCords(cell, row, column);
 
     SDL_Rect clip = {0, 0, cellWidth, cellHeight};
 
@@ -140,4 +260,15 @@ void drawCircle(SDL_Renderer *gRenderer, int xPos, int yPos, int r)
             d = d + 4 * x + 6;
         }
     }
+}
+bool arrayIncludes(char arr[], int arrLength, char searchFor)
+{
+    for (int i = 0; i < arrLength; i++)
+    {
+        if (arr[i] == searchFor)
+        {
+            return true;
+        }
+    }
+    return false;
 }
