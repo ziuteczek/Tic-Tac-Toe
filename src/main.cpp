@@ -5,10 +5,10 @@
 
 #include <array>
 #include <iostream>
-#include <ctime>
 
 #include "stages/menu.hpp"
 #include "stages/game.hpp"
+#include "stages/settings.hpp"
 
 #include "classes/texture.hpp"
 #include "classes/button.hpp"
@@ -22,12 +22,12 @@ int main(int argc, char *argv[])
 {
     init();
 
-    srand(time(NULL));
-
     SDL_Window *gWindow = nullptr;
     SDL_Renderer *gRenderer = nullptr;
 
     Mix_Chunk *hoverSound = nullptr;
+
+    gameSettings gameSettings;
 
     load(&gWindow, &gRenderer, &hoverSound);
 
@@ -35,9 +35,15 @@ int main(int argc, char *argv[])
 
     int menuOption = menu(gWindow, gRenderer, hoverSound);
 
-    if (menuOption == MENU_OPTION_START)
+
+    switch (menuOption)
     {
-        std::cout << game(gWindow, gRenderer) << std::endl;
+    case MENU_OPTION_START:
+        game(gWindow, gRenderer);
+        break;
+    case MENU_OPTION_OPTIONS:
+        settings(gWindow, gRenderer, &gameSettings);
+        break;
     }
 
     close(gWindow, gRenderer, hoverSound);

@@ -24,6 +24,8 @@ public:
     GButtonTexture(SDL_Renderer *textureRenderer);
     GButtonTexture() = default;
 
+    void setRenderer(SDL_Renderer *gRenderer);
+
     GButtonStatus getButtonStatus();
 
     void render();
@@ -100,7 +102,6 @@ bool GButtonTexture::loadTextTexture(std::string text, SDL_Color textColor, int 
         TTF_Quit();
         return false;
     }
-
     SDL_Surface *textSurface = TTF_RenderText_Solid(textFont, text.c_str(), textColor);
 
     if (textSurface == nullptr)
@@ -181,5 +182,9 @@ void GButtonTexture::free()
 GButtonStatus GButtonTexture::getButtonStatus()
 {
     return mouseStatus;
+}
+void GButtonTexture::setRenderer(SDL_Renderer *gRenderer)
+{
+    this->gRenderer = gRenderer;
 }
 #endif
