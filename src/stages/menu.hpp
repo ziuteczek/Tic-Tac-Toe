@@ -38,7 +38,7 @@ void centerMenuElements(SDL_Window *gWindow, std::array<GButtonTexture, MENU_OPT
     1 - Options
     2 - Start game
 */
-int menu(SDL_Window *gWindow, SDL_Renderer *gRenderer)
+int menu(SDL_Window *gWindow, SDL_Renderer *gRenderer, Mix_Chunk *hoverSound)
 {
     bool quitMenu = false;
     menuOptions chosenOption;
@@ -60,6 +60,8 @@ int menu(SDL_Window *gWindow, SDL_Renderer *gRenderer)
 
     while (!quitMenu)
     {
+        bool btnHoverd = false;
+
         while (SDL_PollEvent(&e))
         {
             switch (e.type)
@@ -79,22 +81,33 @@ int menu(SDL_Window *gWindow, SDL_Renderer *gRenderer)
 
                 GButtonStatus currentButtonsStatus = optionButtons[i].getButtonStatus();
 
-                if (optionButtons[i].getButtonStatus() == MOUSE_BUTTON_OVER)
-                {
-                    SDL_SetCursor(click);
-                    break;
-                }
-                else
-                {
-                    SDL_SetCursor(arrow);
-                }
-
                 if (currentButtonsStatus == MOUSE_BUTTON_DOWN)
                 {
                     chosenOption = *reinterpret_cast<menuOptions *>(&i);
                     quitMenu = true;
+                    break;
                 }
             }
+        }
+        for (auto &optionButton : optionButtons)
+        {
+            if (optionButton.getButtonStatus() == MOUSE_BUTTON_OVER)
+            {
+                btnHoverd = true;
+                break;
+            }
+        }
+        if (btnHoverd)
+        {
+            if (SDL_GetCursor() != click)
+            {
+                SDL_SetCursor(click);
+                Mix_PlayChannel(-1, hoverSound, 0);
+            }
+        }
+        else
+        {
+            SDL_SetCursor(arrow);
         }
 
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE);

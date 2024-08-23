@@ -5,10 +5,6 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 
-#include "../classes/button.hpp"
-#include "../classes/texture.hpp"
-#include "../classes/texture_button.hpp"
-
 #define WINDOW_PADDING 0.10f
 #define CELL_PADDING 0.05f
 
@@ -35,7 +31,11 @@ gameResults game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
     bool endGame = false;
     gameResults gameWinner;
 
-    std::array<GButtonTexture, 9> cells;
+    SDL_Cursor *pointer = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    SDL_SetCursor(pointer);
+
+    std::array<GButtonTexture, 9>
+        cells;
 
     for (auto &cell : cells)
     {
@@ -123,6 +123,8 @@ gameResults game(SDL_Window *gWindow, SDL_Renderer *gRenderer)
         }
         SDL_RenderPresent(gRenderer);
     }
+
+    SDL_FreeCursor(pointer);
 
     return gameWinner;
 }
