@@ -129,7 +129,6 @@ void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settin
 
 void setButtonsPositions(std::array<GButtonTexture, SETTING_OPTION_TOTAL> &optionButtons, int screenW, int screenH)
 {
-
     for (int i = 0; i < SETTING_OPTION_TOTAL; i++)
     {
         GButtonTexture &currentBtn = optionButtons[i];
@@ -155,10 +154,10 @@ std::array<GButtonTexture, SETTING_OPTION_TOTAL> genSettingsButtons(SDL_Renderer
     int fontSize = 35;
     SDL_Color textColor = {0, 0, 0};
 
-    optionButtons[SETTING_OPTION_VOLUME].loadTextTexture("Volume", textColor, fontSize, BUTTON_TYPE_CHECK);
-    optionButtons[SETTING_OPTION_BOT].loadTextTexture("Play against bot", textColor, fontSize);
+    optionButtons[SETTING_OPTION_VOLUME].loadTextTexture("Volume", textColor, fontSize);
+    optionButtons[SETTING_OPTION_BOT].loadTextTexture("Play against bot", textColor, fontSize,BUTTON_TYPE_CHECK);
     optionButtons[SETTING_OPTION_DIFFICULTY].loadTextTexture("Difficulty", textColor, fontSize);
-    optionButtons[SETTING_OPTION_FULLSCREEN].loadTextTexture("Fullscreen", textColor, fontSize);
+    optionButtons[SETTING_OPTION_FULLSCREEN].loadTextTexture("Fullscreen", textColor, fontSize, BUTTON_TYPE_CHECK);
     optionButtons[SETTING_OPTION_CIRCLE_COLOR].loadTextTexture("Circle color", textColor, fontSize);
     optionButtons[SETTING_OPTION_CROSS_COLOR].loadTextTexture("Cross color", textColor, fontSize);
     optionButtons[SETTING_OPTION_EXIT].loadTextTexture("Exit", textColor, fontSize);

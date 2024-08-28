@@ -160,14 +160,6 @@ bool GButtonTexture::loadTextTexture(std::string text, SDL_Color textColor, int 
         return false;
     }
 
-    switch (this->buttonType)
-    {
-    case BUTTON_TYPE_CHECK:
-        padding.right = gBtnHeight;
-        clickDrawFunction = &GButtonTexture::drawCheckBtn;
-        break;
-    }
-
     SDL_Surface *textSurface = TTF_RenderText_Solid(textFont, text.c_str(), textColor);
 
     if (textSurface == nullptr)
@@ -181,6 +173,14 @@ bool GButtonTexture::loadTextTexture(std::string text, SDL_Color textColor, int 
 
     gBtnHeight = textSurface->h;
     gBtnWidth = textSurface->w;
+
+    switch (this->buttonType)
+    {
+    case BUTTON_TYPE_CHECK:
+        padding.right = gBtnHeight;
+        clickDrawFunction = &GButtonTexture::drawCheckBtn;
+        break;
+    }
 
     SDL_FreeSurface(textSurface);
     TTF_CloseFont(textFont);
