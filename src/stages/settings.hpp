@@ -26,6 +26,7 @@ enum settingsOptions
     SETTING_OPTION_FULLSCREEN,
     SETTING_OPTION_CIRCLE_COLOR,
     SETTING_OPTION_CROSS_COLOR,
+    SETTING_OPTION_EXIT,
     SETTING_OPTION_TOTAL
 };
 
@@ -41,9 +42,12 @@ struct gameSettings
 std::array<GButtonTexture, SETTING_OPTION_TOTAL> genSettingsButtons(SDL_Renderer *gRenderer, int screenW, int screenH);
 void setButtonsPositions(std::array<GButtonTexture, SETTING_OPTION_TOTAL> &optionButtons, int screenW, int screenH);
 
-void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settings)
+void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settings, Mix_Chunk *hoverSound)
 {
     bool quit = false;
+
+    SDL_Cursor *pointer = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    SDL_Cursor *arrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
     SDL_Event e;
 
@@ -55,6 +59,7 @@ void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settin
 
     while (!quit)
     {
+        bool btnHoverd = false;
         while (SDL_PollEvent(&e))
         {
             switch (e.type)
@@ -62,12 +67,44 @@ void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settin
             case SDL_QUIT:
                 quit = true;
                 break;
+            case SDL_MOUSEBUTTONDOWN:
+                for (auto &optionBtn : buttons)
+                {
+                    optionBtn.detectButtonsStatus(&e);
+                    if (optionBtn.getButtonStatus() == MOUSE_BUTTON_DOWN)
+                    {
+                        optionBtn.checked = !optionBtn.checked;
+                    }
+                }
+                break;
+            case SDL_WINDOWEVENT:
+                if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+                {
+                    SDL_GetWindowSize(gWindow, &screenW, &screenH);
+                    setButtonsPositions(buttons, screenW, screenH);
+                }
+                break;
             }
-            if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED)
+        }
+        for (auto &optionButton : buttons)
+        {
+            if (optionButton.getButtonStatus() == MOUSE_BUTTON_OVER)
             {
-                SDL_GetWindowSize(gWindow, &screenW, &screenH);
-                setButtonsPositions(buttons, screenW, screenH);
+                btnHoverd = true;
+                break;
             }
+        }
+        if (btnHoverd)
+        {
+            if (SDL_GetCursor() != arrow)
+            {
+                SDL_SetCursor(pointer);
+                Mix_PlayChannel(-1, hoverSound, 0);
+            }
+        }
+        else
+        {
+            SDL_SetCursor(arrow);
         }
 
         SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, SDL_ALPHA_OPAQUE);
@@ -80,6 +117,14 @@ void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settin
 
         SDL_RenderPresent(gRenderer);
     }
+
+    SDL_FreeCursor(pointer);
+    SDL_FreeCursor(arrow);
+
+    for (auto &btn : buttons)
+    {
+        btn.free();
+    }
 }
 
 void setButtonsPositions(std::array<GButtonTexture, SETTING_OPTION_TOTAL> &optionButtons, int screenW, int screenH)
@@ -89,8 +134,8 @@ void setButtonsPositions(std::array<GButtonTexture, SETTING_OPTION_TOTAL> &optio
     {
         GButtonTexture &currentBtn = optionButtons[i];
 
-        int btnXPos = screenW / 2 - currentBtn.getWidth() / 2;
-        int btnYPos = screenH / SETTING_OPTION_TOTAL - currentBtn.getHeight() / 2;
+        int btnXPos = (screenW - currentBtn.getWidth() - currentBtn.getPadding(PADDING_DIRECTION_RIGHT) + currentBtn.getPadding(PADDING_DIRECTION_LEFT)) / 2;
+        int btnYPos = screenH / SETTING_OPTION_TOTAL - (currentBtn.getHeight() - currentBtn.getPadding(PADDING_DIRECTION_TOP) + currentBtn.getPadding(PADDING_DIRECTION_BOTTOM)) / 2;
 
         btnYPos *= i + 1;
 
@@ -110,12 +155,13 @@ std::array<GButtonTexture, SETTING_OPTION_TOTAL> genSettingsButtons(SDL_Renderer
     int fontSize = 35;
     SDL_Color textColor = {0, 0, 0};
 
+    optionButtons[SETTING_OPTION_VOLUME].loadTextTexture("Volume", textColor, fontSize, BUTTON_TYPE_CHECK);
     optionButtons[SETTING_OPTION_BOT].loadTextTexture("Play against bot", textColor, fontSize);
-    optionButtons[SETTING_OPTION_VOLUME].loadTextTexture("Volume", textColor, fontSize);
     optionButtons[SETTING_OPTION_DIFFICULTY].loadTextTexture("Difficulty", textColor, fontSize);
+    optionButtons[SETTING_OPTION_FULLSCREEN].loadTextTexture("Fullscreen", textColor, fontSize);
     optionButtons[SETTING_OPTION_CIRCLE_COLOR].loadTextTexture("Circle color", textColor, fontSize);
     optionButtons[SETTING_OPTION_CROSS_COLOR].loadTextTexture("Cross color", textColor, fontSize);
-    optionButtons[SETTING_OPTION_FULLSCREEN].loadTextTexture("Fullscreen", textColor, fontSize);
+    optionButtons[SETTING_OPTION_EXIT].loadTextTexture("Exit", textColor, fontSize);
 
     setButtonsPositions(optionButtons, screenW, screenH);
 

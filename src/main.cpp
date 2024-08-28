@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
         game(gWindow, gRenderer);
         break;
     case MENU_OPTION_OPTIONS:
-        settings(gWindow, gRenderer, &gameSettings);
+        settings(gWindow, gRenderer, &gameSettings, hoverSound);
         break;
     }
 
