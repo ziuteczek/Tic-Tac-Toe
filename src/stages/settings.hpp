@@ -42,9 +42,10 @@ struct gameSettings
 std::array<GButtonTexture, SETTING_OPTION_TOTAL> genSettingsButtons(SDL_Renderer *gRenderer, int screenW, int screenH);
 void setButtonsPositions(std::array<GButtonTexture, SETTING_OPTION_TOTAL> &optionButtons, int screenW, int screenH);
 
-void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settings, Mix_Chunk *hoverSound)
+bool settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settings, Mix_Chunk *hoverSound)
 {
     bool quit = false;
+    bool closeGame = false;
 
     SDL_Cursor *pointer = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
     SDL_Cursor *arrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
@@ -66,6 +67,7 @@ void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settin
             {
             case SDL_QUIT:
                 quit = true;
+                closeGame = true;
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 for (auto &optionBtn : buttons)
@@ -93,6 +95,10 @@ void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settin
                 btnHoverd = true;
                 break;
             }
+        }
+        if (buttons[SETTING_OPTION_EXIT].getButtonStatus() == MOUSE_BUTTON_DOWN)
+        {
+            quit = true;
         }
         if (btnHoverd)
         {
@@ -125,6 +131,7 @@ void settings(SDL_Window *gWindow, SDL_Renderer *gRenderer, gameSettings *settin
     {
         btn.free();
     }
+    return closeGame;
 }
 
 void setButtonsPositions(std::array<GButtonTexture, SETTING_OPTION_TOTAL> &optionButtons, int screenW, int screenH)
@@ -155,7 +162,7 @@ std::array<GButtonTexture, SETTING_OPTION_TOTAL> genSettingsButtons(SDL_Renderer
     SDL_Color textColor = {0, 0, 0};
 
     optionButtons[SETTING_OPTION_VOLUME].loadTextTexture("Volume", textColor, fontSize);
-    optionButtons[SETTING_OPTION_BOT].loadTextTexture("Play against bot", textColor, fontSize,BUTTON_TYPE_CHECK);
+    optionButtons[SETTING_OPTION_BOT].loadTextTexture("Play against bot", textColor, fontSize, BUTTON_TYPE_CHECK);
     optionButtons[SETTING_OPTION_DIFFICULTY].loadTextTexture("Difficulty", textColor, fontSize);
     optionButtons[SETTING_OPTION_FULLSCREEN].loadTextTexture("Fullscreen", textColor, fontSize, BUTTON_TYPE_CHECK);
     optionButtons[SETTING_OPTION_CIRCLE_COLOR].loadTextTexture("Circle color", textColor, fontSize);

@@ -1,9 +1,12 @@
 #include <string>
 #include <iostream>
+#include <vector>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+
+#include "texture.hpp"
 
 #ifndef G_BUTTON_TEXTURE_H
 #define G_BUTTON_TEXTURE_H
@@ -14,6 +17,7 @@ enum btnType
     BUTTON_TYPE_CHECK,
     BUTTON_TYPE_RANGE,
     BUTTON_TYPE_COLOR,
+    BUTTON_TYPE_LIST,
     BUTTON_TYPES_TOTAL
 };
 enum paddingDirections
@@ -38,19 +42,25 @@ private:
 
     int gBtnHeight = 0;
     int gBtnWidth = 0;
+    int clickHeight = 0;
+    int clickWidth = 0;
 
-    GButtonStatus mouseStatus = GButtonStatus::MOUSE_BUTTON_OUT;
+    GButtonStatus mouseStatus = MOUSE_BUTTON_OUT;
 
     SDL_Texture *gTexture = nullptr;
     SDL_Renderer *gRenderer = nullptr;
 
     paddingSizes padding;
 
-    void drawCheckBtn();
+    std::vector<GTexture> optionsTextTextures;
 
     void (GButtonTexture::*clickDrawFunction)(void) = nullptr;
 
     btnType buttonType = BUTTON_TYPE_NONE;
+
+    void drawCheckBtn();
+    void drawRangeBtn();
+    void drawListBtn();
 
 public:
     GButtonTexture(SDL_Renderer *textureRenderer);
@@ -66,6 +76,7 @@ public:
 
     bool loadImgTexture(std::string path);
     bool loadTextTexture(std::string text, SDL_Color textColor, int fontSize, btnType buttonType = BUTTON_TYPE_NONE);
+    void loadListOptions(std::vector<std::string> optionsTxt, int fontSize = 20);
 
     void setBtnPos(int x, int y);
 
@@ -79,6 +90,30 @@ public:
 
     ~GButtonTexture();
 };
+void GButtonTexture::loadListOptions(std::vector<std::string> optionsTxt, int fontSize /*= 20*/)
+{
+    if (optionsTxt.size() == 0)
+    {
+        return;
+    }
+
+    int optionsQuantity = optionsTxt.size();
+    int32_t optionWidth = INT32_MIN;
+
+    optionsTextTextures.resize(optionsQuantity);
+
+    for (int i = 0; i < optionsQuantity; i++)
+    {
+        GTexture optionTexture(gRenderer);
+        optionTexture.loadTextTexture(optionsTxt[i], {0, 0, 0}, fontSize);
+
+        optionWidth = std::max(optionWidth, optionTexture.getWidth());
+
+        optionsTextTextures[i] = optionTexture;
+    }
+    clickHeight = optionsTextTextures[0].getHeight();
+    clickWidth = optionWidth;
+}
 int GButtonTexture::getPadding(paddingDirections paddingDirection)
 {
     int paddingToReturn;
@@ -125,7 +160,6 @@ bool GButtonTexture::loadImgTexture(std::string path)
     if (loadImgSurface == nullptr)
     {
         SDL_FreeSurface(loadImgSurface);
-        IMG_Quit();
         return false;
     }
 
@@ -134,7 +168,6 @@ bool GButtonTexture::loadImgTexture(std::string path)
     if (gTexture == nullptr)
     {
         SDL_FreeSurface(loadImgSurface);
-        IMG_Quit();
         return false;
     }
 
@@ -156,7 +189,6 @@ bool GButtonTexture::loadTextTexture(std::string text, SDL_Color textColor, int 
     if (textFont == nullptr)
     {
         TTF_CloseFont(textFont);
-        TTF_Quit();
         return false;
     }
 
@@ -180,6 +212,13 @@ bool GButtonTexture::loadTextTexture(std::string text, SDL_Color textColor, int 
         padding.right = gBtnHeight;
         clickDrawFunction = &GButtonTexture::drawCheckBtn;
         break;
+    case BUTTON_TYPE_LIST:
+        int optionWidth = 0;
+        for (auto &optionTexture : optionsTextTextures)
+        {
+            optionWidth = std::max(optionWidth, optionTexture.getWidth());
+        }
+        break;
     }
 
     SDL_FreeSurface(textSurface);
@@ -202,14 +241,28 @@ void GButtonTexture::drawCheckBtn()
 
     if (checked)
     {
-        // fill click
         SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0xFF, SDL_ALPHA_OPAQUE);
         SDL_Rect clickRect = {btnPos.x + gBtnWidth + gBtnHeight / 10, btnPos.y + gBtnHeight / 10, int(gBtnHeight * 0.8f), int(gBtnHeight * 0.8f)};
         SDL_RenderFillRect(gRenderer, &clickRect);
     }
     SDL_SetRenderDrawColor(gRenderer, previousRenderColor.r, previousRenderColor.g, previousRenderColor.b, previousRenderColor.a);
 }
+void GButtonTexture::drawRangeBtn()
+{
+    SDL_Color previousRenderColor;
+    SDL_GetRenderDrawColor(gRenderer, &previousRenderColor.r, &previousRenderColor.g, &previousRenderColor.b, &previousRenderColor.a);
+    SDL_SetRenderDrawColor(gRenderer, 0x50, 0x50, 0x50, SDL_ALPHA_OPAQUE);
 
+    SDL_SetRenderDrawColor(gRenderer, previousRenderColor.r, previousRenderColor.g, previousRenderColor.b, previousRenderColor.a);
+}
+void GButtonTexture::drawListBtn()
+{
+    SDL_Color previousRenderColor;
+    SDL_GetRenderDrawColor(gRenderer, &previousRenderColor.r, &previousRenderColor.g, &previousRenderColor.b, &previousRenderColor.a);
+    SDL_SetRenderDrawColor(gRenderer, 0x50, 0x50, 0x50, SDL_ALPHA_OPAQUE);
+
+    SDL_SetRenderDrawColor(gRenderer, previousRenderColor.r, previousRenderColor.g, previousRenderColor.b, previousRenderColor.a);
+}
 void GButtonTexture::render()
 {
     SDL_Rect renderPos = {btnPos.x, btnPos.y, gBtnWidth, gBtnHeight};
@@ -273,6 +326,8 @@ void GButtonTexture::free()
     gBtnWidth = 0;
 
     padding = {0, 0, 0, 0};
+
+    optionsTextTextures.clear();
 }
 
 GButtonStatus GButtonTexture::getButtonStatus()

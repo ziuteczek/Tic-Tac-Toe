@@ -32,19 +32,23 @@ int main(int argc, char *argv[])
     load(&gWindow, &gRenderer, &hoverSound);
 
     bool startGame = false;
+    bool quitGame = false;
 
-    int menuOption = menu(gWindow, gRenderer, hoverSound);
-
-
-    switch (menuOption)
+    do
     {
-    case MENU_OPTION_START:
-        game(gWindow, gRenderer);
-        break;
-    case MENU_OPTION_OPTIONS:
-        settings(gWindow, gRenderer, &gameSettings, hoverSound);
-        break;
-    }
+        switch (menu(gWindow, gRenderer, hoverSound))
+        {
+        case MENU_OPTION_START:
+            game(gWindow, gRenderer);
+            break;
+        case MENU_OPTION_OPTIONS:
+            quitGame = settings(gWindow, gRenderer, &gameSettings, hoverSound);
+            break;
+        case MENU_OPTION_QUIT:
+            quitGame = true;
+            break;
+        }
+    } while (!quitGame);
 
     close(gWindow, gRenderer, hoverSound);
 }
